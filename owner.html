@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tee Ouan Packaging - Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --pink: #e91e8c;
+      --pink-mid: #c41578;
+      --pink-dark: #9b1166;
+      --pink-light: #fce4f3;
+      --text: #1a1a2e;
+      --text-muted: #64748b;
+      --bg-admin: #f8fafc;
+      --white: #ffffff;
+      --shadow: 0 4px 20px rgba(0,0,0,0.06);
+      --border: #e2e8f0;
+      --status-pending-bg: #fef3c7; --status-pending-text: #92400e;
+      --status-paid-bg: #d1fae5; --status-paid-text: #065f46;
+      --status-shipped-bg: #dbeafe; --status-shipped-text: #1e40af;
+      --status-cash-bg: #f3f4f6; --status-cash-text: #374151;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg-admin); color: var(--text); line-height: 1.5; }
+
+    body.lang-mode-en .lang-th { display: none !important; }
+    body.lang-mode-th .lang-en { display: none !important; }
+
+    /* ─── HEADER ─── */
+    .admin-header {
+      background: var(--white); padding: 14px 32px;
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07); position: sticky; top: 0; z-index: 100;
+      border-bottom: 1px solid var(--border);
+    }
+    .header-left { display: flex; align-items: center; gap: 20px; }
+    .admin-logo { font-family: 'Nunito', sans-serif; font-size: 1.2rem; font-weight: 900; color: var(--text); display: flex; align-items: center; gap: 8px; }
+    .logo-pill { background: var(--pink-light); color: var(--pink); border-radius: 8px; padding: 4px 10px; font-size: 0.85rem; font-weight: 700; }
+    .admin-lang-switch { display: flex; background: #edf2f7; padding: 4px; border-radius: 8px; gap: 2px; }
+    .admin-lang-switch button { border: none; background: none; padding: 4px 12px; font-size: 0.8rem; font-weight: 700; cursor: pointer; border-radius: 6px; color: var(--text-muted); transition: 0.2s; font-family: 'Poppins', sans-serif; }
+    .admin-lang-switch button.active { background: var(--white); color: var(--pink-dark); box-shadow: 0 2px 4px rgba(0,0,0,0.07); }
+    .admin-user { font-size: 0.88rem; font-weight: 600; color: var(--text-muted); }
+    .refresh-btn { background: none; border: 1px solid var(--border); border-radius: 8px; padding: 6px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer; color: var(--text-muted); font-family: 'Poppins', sans-serif; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
+    .refresh-btn:hover { background: var(--pink-light); color: var(--pink); border-color: var(--pink); }
+
+    /* ─── STATS BAR ─── */
+    .stats-bar { display: flex; gap: 16px; padding: 24px 24px 0; max-width: 1400px; margin: 0 auto; }
+    .stat-pill { background: var(--white); border-radius: 12px; padding: 14px 20px; flex: 1; box-shadow: var(--shadow); border: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+    .stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .stat-icon.pink { background: var(--pink-light); }
+    .stat-icon.green { background: #d1fae5; }
+    .stat-icon.blue { background: #dbeafe; }
+    .stat-icon.yellow { background: #fef3c7; }
+    .stat-num { font-size: 1.4rem; font-weight: 900; font-family: 'Nunito', sans-serif; color: var(--text); }
+    .stat-label { font-size: 0.78rem; color: var(--text-muted); font-weight: 600; }
+
+    /* ─── MAIN LAYOUT ─── */
+    .admin-container { display: grid; grid-template-columns: 1fr 420px; gap: 24px; max-width: 1400px; margin: 24px auto; padding: 0 24px; }
+    .admin-main h2 { font-family: 'Nunito', sans-serif; font-size: 1.3rem; font-weight: 800; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+    /* ─── FILTER TABS ─── */
+    .filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .filter-tab { border: 1.5px solid var(--border); background: white; padding: 6px 16px; border-radius: 20px; cursor: pointer; font-size: 0.82rem; font-weight: 700; font-family: 'Poppins', sans-serif; color: var(--text-muted); transition: all 0.2s; }
+    .filter-tab.active { background: var(--pink); color: white; border-color: var(--pink); }
+    .filter-tab:hover:not(.active) { border-color: var(--pink); color: var(--pink); }
+
+    /* ─── ORDERS TABLE ─── */
+    .table-responsive { background: var(--white); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; border: 1px solid var(--border); }
+    .orders-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    .orders-table th { background: #f8fafc; padding: 14px 18px; font-weight: 700; color: var(--text-muted); border-bottom: 1px solid var(--border); text-align: left; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .orders-table td { padding: 16px 18px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+    .orders-table tr:last-child td { border-bottom: none; }
+    .order-row { cursor: pointer; transition: background 0.15s; }
+    .order-row:hover { background: #fafafa; }
+    .order-row.selected { background: var(--pink-light); }
+
+    .badge-pay { background: #f1f5f9; color: #475569; padding: 3px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
+    .badge-pay.promptpay { background: #ede9fe; color: #5b21b6; }
+    .badge-pay.cash { background: #f3f4f6; color: #374151; }
+
+    .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
+    .status-pending { background: var(--status-pending-bg); color: var(--status-pending-text); }
+    .status-paid { background: var(--status-paid-bg); color: var(--status-paid-text); }
+    .status-shipped { background: var(--status-shipped-bg); color: var(--status-shipped-text); }
+    .status-cash { background: var(--status-cash-bg); color: var(--status-cash-text); }
+
+    .empty-orders { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+    .empty-orders .emoji { font-size: 48px; margin-bottom: 12px; }
+    .empty-orders p { font-size: 0.9rem; }
+
+    /* ─── SIDEBAR ─── */
+    .admin-sidebar { background: var(--white); border-radius: 16px; padding: 0; box-shadow: var(--shadow); border: 1px solid var(--border); align-self: start; overflow: hidden; }
+    .sidebar-placeholder { padding: 48px 24px; text-align: center; color: var(--text-muted); }
+    .sidebar-placeholder .emoji { font-size: 40px; margin-bottom: 12px; }
+    .sidebar-placeholder p { font-size: 0.88rem; }
+
+    .sidebar-header { padding: 18px 22px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+    .sidebar-title { font-family: 'Nunito', sans-serif; font-size: 1.05rem; font-weight: 800; }
+    .sidebar-order-id { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+    .sidebar-body { padding: 20px 22px; }
+
+    .detail-section { margin-bottom: 20px; }
+    .detail-section-title { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
+    .detail-row { display: flex; justify-content: space-between; font-size: 0.88rem; padding: 6px 0; border-bottom: 1px solid #f5f5f5; }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-key { color: var(--text-muted); font-weight: 600; flex-shrink: 0; margin-right: 12px; }
+    .detail-val { font-weight: 600; text-align: right; word-break: break-all; }
+
+    /* Items list in sidebar */
+    .sidebar-items { background: #f9fafb; border-radius: 10px; padding: 12px; margin-bottom: 0; }
+    .sidebar-item-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 0.85rem; }
+    .sidebar-item-row:last-child { border-bottom: none; }
+    .sidebar-item-thumb { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; background: #eee; }
+    .sidebar-item-info { flex: 1; }
+    .sidebar-item-name { font-weight: 700; }
+    .sidebar-item-qty { font-size: 0.78rem; color: var(--text-muted); }
+    .sidebar-item-price { font-weight: 700; color: var(--pink); }
+
+    .total-box { background: var(--pink-light); border-radius: 10px; padding: 12px; font-size: 0.88rem; }
+    .total-row { display: flex; justify-content: space-between; padding: 4px 0; color: var(--text-muted); }
+    .total-final { display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: 800; border-top: 1px solid rgba(233,30,140,0.2); padding-top: 8px; margin-top: 4px; }
+    .total-final-price { color: var(--pink); }
+
+    /* Slip preview */
+    .slip-box { border: 2px dashed var(--border); border-radius: 12px; overflow: hidden; min-height: 160px; display: flex; align-items: center; justify-content: center; background: #f8fafc; margin-bottom: 0; }
+    .slip-box img { width: 100%; max-height: 260px; object-fit: contain; display: block; }
+    .slip-placeholder { text-align: center; padding: 32px; color: var(--text-muted); font-size: 0.82rem; }
+    .slip-placeholder .emoji { font-size: 32px; display: block; margin-bottom: 8px; }
+
+    /* Action buttons */
+    .actions-box { display: flex; flex-direction: column; gap: 8px; padding: 16px 22px 20px; border-top: 1px solid var(--border); }
+    .btn-admin { width: 100%; padding: 11px 18px; border: none; border-radius: 10px; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: 'Poppins', sans-serif; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .btn-admin:active { transform: scale(0.98); }
+    .btn-approve { background: #10b981; color: white; }
+    .btn-approve:hover { background: #059669; }
+    .btn-approve:disabled { background: #a3e0cc; cursor: not-allowed; }
+    .btn-ship { background: var(--pink); color: white; }
+    .btn-ship:hover { background: var(--pink-mid); }
+    .btn-ship:disabled { background: #f0a0d0; cursor: not-allowed; }
+    .btn-reject { background: #fee2e2; color: #dc2626; }
+    .btn-reject:hover { background: #fecaca; }
+
+    /* ─── SHIP MODAL ─── */
+    .admin-modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(2px); }
+    .admin-modal-box { background: var(--white); border-radius: 20px; padding: 28px 32px; max-width: 540px; width: 90%; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+    .admin-modal-box h3 { font-family: 'Nunito', sans-serif; font-size: 1.15rem; font-weight: 800; margin-bottom: 6px; }
+    .modal-note { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 20px; }
+    .email-preview-area { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 16px; font-size: 0.86rem; margin-bottom: 20px; }
+    .email-preview-area p { margin-bottom: 6px; color: var(--text); }
+    .email-preview-area hr { border: 0; border-top: 1px solid var(--border); margin: 10px 0; }
+    .email-body { color: #4a5568; line-height: 1.6; }
+    .email-body input { padding: 4px 8px; border: 1.5px solid var(--border); border-radius: 6px; font-size: 0.86rem; width: 160px; font-family: 'Poppins', sans-serif; outline: none; }
+    .email-body input:focus { border-color: var(--pink); }
+    .modal-buttons { display: flex; gap: 10px; }
+    .btn-send { background: #2563eb; color: white; flex: 2; }
+    .btn-send:hover { background: #1d4ed8; }
+    .btn-cancel { background: #f1f5f9; color: var(--text); flex: 1; }
+    .btn-cancel:hover { background: #e2e8f0; }
+
+    /* ─── TOAST ─── */
+    .admin-toast { position: fixed; bottom: 24px; right: 24px; background: #1a1a2e; color: white; padding: 12px 20px; border-radius: 12px; font-size: 0.88rem; font-weight: 600; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    .admin-toast.show { opacity: 1; }
+
+    @media (max-width: 1100px) { .admin-container { grid-template-columns: 1fr; } }
+    @media (max-width: 700px) { .stats-bar { flex-wrap: wrap; } .stat-pill { flex: calc(50% - 8px); } }
+  </style>
+</head>
+<body class="lang-mode-en">
+
+<header class="admin-header">
+  <div class="header-left">
+    <div class="admin-lang-switch">
+      <button id="admin-btn-th" onclick="changeAdminLang('th')">TH</button>
+      <button id="admin-btn-en" onclick="changeAdminLang('en')" class="active">EN</button>
+    </div>
+    <div class="admin-logo">
+      <span class="logo-pill">Admin</span>
+      📦 Tee Ouan Packaging
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <button class="refresh-btn" onclick="loadOrders()">
+      🔄 <span class="lang-en">Refresh</span><span class="lang-th">รีเฟรช</span>
+    </button>
+    <span class="admin-user">
+      <span class="lang-en">Welcome, Owner 👑</span>
+      <span class="lang-th">ยินดีต้อนรับ, เจ้าของร้าน 👑</span>
+    </span>
+  </div>
+</header>
+
+<!-- Stats Bar -->
+<div class="stats-bar">
+  <div class="stat-pill">
+    <div class="stat-icon pink">📋</div>
+    <div>
+      <div class="stat-num" id="stat-total">0</div>
+      <div class="stat-label lang-en">Total Orders</div>
+      <div class="stat-label lang-th">คำสั่งซื้อทั้งหมด</div>
+    </div>
+  </div>
+  <div class="stat-pill">
+    <div class="stat-icon yellow">⏳</div>
+    <div>
+      <div class="stat-num" id="stat-pending">0</div>
+      <div class="stat-label lang-en">Pending</div>
+      <div class="stat-label lang-th">รอตรวจสอบ</div>
+    </div>
+  </div>
+  <div class="stat-pill">
+    <div class="stat-icon green">✅</div>
+    <div>
+      <div class="stat-num" id="stat-paid">0</div>
+      <div class="stat-label lang-en">Paid</div>
+      <div class="stat-label lang-th">ชำระแล้ว</div>
+    </div>
+  </div>
+  <div class="stat-pill">
+    <div class="stat-icon blue">💰</div>
+    <div>
+      <div class="stat-num" id="stat-revenue">฿0</div>
+      <div class="stat-label lang-en">Revenue</div>
+      <div class="stat-label lang-th">รายได้รวม</div>
+    </div>
+  </div>
+</div>
+
+<div class="admin-container">
+  <main class="admin-main">
+    <h2>
+      <span class="lang-en">📥 Incoming Orders</span>
+      <span class="lang-th">📥 รายการสั่งซื้อที่เข้ามา</span>
+    </h2>
+
+    <div class="filter-bar">
+      <button class="filter-tab active" onclick="filterOrders('all', this)">
+        <span class="lang-en">All</span><span class="lang-th">ทั้งหมด</span>
+      </button>
+      <button class="filter-tab" onclick="filterOrders('pending', this)">
+        <span class="lang-en">⏳ Pending Slip</span><span class="lang-th">⏳ รอสลิป</span>
+      </button>
+      <button class="filter-tab" onclick="filterOrders('paid', this)">
+        <span class="lang-en">✅ Paid</span><span class="lang-th">✅ ชำระแล้ว</span>
+      </button>
+      <button class="filter-tab" onclick="filterOrders('shipped', this)">
+        <span class="lang-en">🚀 Shipped</span><span class="lang-th">🚀 จัดส่งแล้ว</span>
+      </button>
+      <button class="filter-tab" onclick="filterOrders('cash', this)">
+        <span class="lang-en">💵 Cash</span><span class="lang-th">💵 ชำระเงินสด</span>
+      </button>
+    </div>
+
+    <div class="table-responsive">
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th><span class="lang-en">Date</span><span class="lang-th">วันที่</span></th>
+            <th><span class="lang-en">Customer</span><span class="lang-th">ลูกค้า</span></th>
+            <th><span class="lang-en">Items</span><span class="lang-th">สินค้า</span></th>
+            <th><span class="lang-en">Total</span><span class="lang-th">ยอดรวม</span></th>
+            <th><span class="lang-en">Payment</span><span class="lang-th">วิธีชำระ</span></th>
+            <th><span class="lang-en">Status</span><span class="lang-th">สถานะ</span></th>
+          </tr>
+        </thead>
+        <tbody id="adminOrderList">
+          <tr>
+            <td colspan="7">
+              <div class="empty-orders">
+                <div class="emoji">📋</div>
+                <p class="lang-en">Loading orders… (open the customer page and place an order first)</p>
+                <p class="lang-th">กำลังโหลด… (เปิดหน้าลูกค้าแล้วสั่งซื้อสินค้าก่อน)</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <aside class="admin-sidebar" id="adminDetailPanel">
+    <div class="sidebar-placeholder">
+      <div class="emoji">👆</div>
+      <p class="lang-en">Select an order to view details</p>
+      <p class="lang-th">เลือกคำสั่งซื้อเพื่อดูรายละเอียด</p>
+    </div>
+  </aside>
+</div>
+
+<!-- Ship Modal -->
+<div class="admin-modal-overlay" id="shipModal" style="display:none">
+  <div class="admin-modal-box">
+    <h3>
+      <span class="lang-en">✉️ Shipping Notification Email Preview</span>
+      <span class="lang-th">✉️ ตัวอย่างอีเมลแจ้งจัดส่งสินค้า</span>
+    </h3>
+    <p class="modal-note">
+      <span class="lang-en">This simulates sending the notification email to the customer.</span>
+      <span class="lang-th">จำลองการส่งอีเมลแจ้งเตือนไปยังลูกค้า</span>
+    </p>
+    <div class="email-preview-area" id="emailPreviewContent"></div>
+    <div class="modal-buttons">
+      <button class="btn-admin btn-send" onclick="sendSimulation()">
+        <span class="lang-en">✅ Confirm & Send Email</span>
+        <span class="lang-th">✅ ยืนยัน & ส่งอีเมล</span>
+      </button>
+      <button class="btn-admin btn-cancel" onclick="closeShipModal()">
+        <span class="lang-en">Cancel</span>
+        <span class="lang-th">ยกเลิก</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="admin-toast" id="adminToast"></div>
+
+<script>
+  // ─── PRODUCT DATA (mirrors customer page) ───
+  const PRODUCTS = [
+    { id:1, name:'Corrugated Box Size A', nameTh:'กล่องลูกฟูกขนาด A', emoji:'📦', price:15, image:'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=80' },
+    { id:2, name:'Bubble Wrap', nameTh:'บับเบิ้ลแรป', emoji:'🫧', price:120, image:'https://images.unsplash.com/photo-1609766418204-94aae0ecfdfc?w=80' },
+    { id:3, name:'Kraft Paper Bags', nameTh:'ถุงกระดาษคราฟท์', emoji:'🛍️', price:5, image:'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=80' },
+    { id:4, name:'Eco Paper Box', nameTh:'กล่องกระดาษรักษ์โลก', emoji:'♻️', price:18, image:'https://images.unsplash.com/photo-1533779183510-8f55a55f8d44?w=80' },
+    { id:5, name:'Zip Lock Bags', nameTh:'ถุงซิปล็อค', emoji:'🪣', price:8, image:'https://images.unsplash.com/photo-1627484986430-a8e55a86dd4e?w=80' },
+    { id:6, name:'Clear Packing Tape', nameTh:'เทปกาวใส', emoji:'📎', price:25, image:'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=80' }
+  ];
+
+  let adminLang = 'en';
+  let allOrders = [];
+  let selectedOrderId = null;
+  let filterMode = 'all';
+
+  function changeAdminLang(lang) {
+    adminLang = lang;
+    document.body.className = 'lang-mode-' + lang;
+    document.getElementById('admin-btn-th').classList.toggle('active', lang==='th');
+    document.getElementById('admin-btn-en').classList.toggle('active', lang==='en');
+  }
+
+  function getProductInfo(id) {
+    return PRODUCTS.find(p => p.id === id) || { name:'Unknown', nameTh:'ไม่ทราบ', emoji:'📦', price:0, image:'' };
+  }
+
+  function getProductName(p) {
+    return adminLang === 'th' ? p.nameTh : p.name;
+  }
+
+  function loadOrders() {
+    try {
+      allOrders = JSON.parse(localStorage.getItem('teeouanOrders') || '[]');
+    } catch(e) {
+      allOrders = [];
+    }
+    renderStats();
+    renderOrderTable();
+    if(selectedOrderId) {
+      const still = allOrders.find(o => o.id === selectedOrderId);
+      if(still) renderDetailPanel(still);
+    }
+  }
+
+  function renderStats() {
+    document.getElementById('stat-total').textContent = allOrders.length;
+    document.getElementById('stat-pending').textContent = allOrders.filter(o => o.status === 'pending').length;
+    document.getElementById('stat-paid').textContent = allOrders.filter(o => o.status === 'paid' || o.status === 'shipped').length;
+    const revenue = allOrders.filter(o => o.status !== 'pending').reduce((a,o) => a + o.total, 0);
+    document.getElementById('stat-revenue').textContent = '฿' + revenue;
+  }
+
+  function filterOrders(mode, btn) {
+    filterMode = mode;
+    document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderOrderTable();
+  }
+
+  function renderOrderTable() {
+    const tbody = document.getElementById('adminOrderList');
+    let filtered = allOrders;
+    if(filterMode !== 'all') {
+      filtered = allOrders.filter(o => {
+        if(filterMode === 'cash') return o.payMethod === 'cash';
+        return o.status === filterMode;
+      });
+    }
+
+    if(filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7">
+        <div class="empty-orders">
+          <div class="emoji">${filterMode === 'all' ? '📋' : '🔍'}</div>
+          <p class="lang-en">${filterMode === 'all' ? 'No orders yet. Place an order from the customer page first.' : 'No orders in this category.'}</p>
+          <p class="lang-th">${filterMode === 'all' ? 'ยังไม่มีคำสั่งซื้อ' : 'ไม่มีคำสั่งซื้อในหมวดนี้'}</p>
+        </div>
+      </td></tr>`;
+      return;
+    }
+
+    const sorted = [...filtered].reverse();
+    tbody.innerHTML = sorted.map(order => {
+      const statusInfo = getStatusInfo(order);
+      const payLabel = order.payMethod === 'cash'
+        ? `<span class="badge-pay cash">💵 ${adminLang==='th'?'เงินสด':'Cash'}</span>`
+        : `<span class="badge-pay promptpay">📱 PromptPay</span>`;
+      const itemCount = order.items ? order.items.reduce((a,i) => a+i.qty, 0) : 0;
+      const isSelected = order.id === selectedOrderId;
+      return `<tr class="order-row${isSelected?' selected':''}" onclick="selectOrder('${order.id}')">
+        <td><strong>#${order.id}</strong></td>
+        <td style="color:var(--text-muted)">${order.date}</td>
+        <td>
+          <div style="font-weight:700">${order.customer?.name || '-'}</div>
+          <div style="font-size:0.78rem;color:var(--text-muted)">${order.customer?.phone || ''}</div>
+        </td>
+        <td style="color:var(--text-muted);font-size:0.82rem">${itemCount} ${adminLang==='th'?'ชิ้น':'pcs'}</td>
+        <td><strong style="color:var(--pink)">฿${order.total}</strong></td>
+        <td>${payLabel}</td>
+        <td><span class="status-badge ${statusInfo.cls}">${statusInfo.label}</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function getStatusInfo(order) {
+    if(order.status === 'shipped') return { cls:'status-shipped', label: adminLang==='th'?'🚀 จัดส่งแล้ว':'🚀 Shipped' };
+    if(order.status === 'paid')    return { cls:'status-paid',    label: adminLang==='th'?'✅ ชำระแล้ว':'✅ Paid' };
+    if(order.status === 'cash')    return { cls:'status-cash',    label: adminLang==='th'?'💵 ชำระเงินสด':'💵 Cash Order' };
+    return { cls:'status-pending', label: adminLang==='th'?'⏳ รอสลิป':'⏳ Pending Slip' };
+  }
+
+  function selectOrder(orderId) {
+    selectedOrderId = orderId;
+    const order = allOrders.find(o => o.id === orderId);
+    if(!order) return;
+    // Highlight row
+    document.querySelectorAll('.order-row').forEach(r => r.classList.remove('selected'));
+    const rows = document.querySelectorAll('.order-row');
+    rows.forEach(r => { if(r.onclick.toString().includes(orderId)) r.classList.add('selected'); });
+    renderDetailPanel(order);
+  }
+
+  function renderDetailPanel(order) {
+    const panel = document.getElementById('adminDetailPanel');
+    const th = adminLang === 'th';
+    const statusInfo = getStatusInfo(order);
+
+    // Items HTML
+    const itemsHtml = (order.items || []).map(item => {
+      const p = getProductInfo(item.id);
+      return `<div class="sidebar-item-row">
+        <img class="sidebar-item-thumb" src="${p.image}" alt="" onerror="this.style.display='none'">
+        <div class="sidebar-item-info">
+          <div class="sidebar-item-name">${getProductName(p)}</div>
+          <div class="sidebar-item-qty">×${item.qty} @ ฿${p.price}</div>
+        </div>
+        <div class="sidebar-item-price">฿${p.price * item.qty}</div>
+      </div>`;
+    }).join('');
+
+    const subtotal = order.total - (order.payMethod === 'cash' ? 100 : 0);
+    const cashFeeRow = order.payMethod === 'cash'
+      ? `<div class="total-row"><span>${th?'ค่าธรรมเนียมเงินสด':'Cash handling fee'}</span><span>+฿100</span></div>`
+      : '';
+
+    // Slip section
+    let slipHtml = '';
+    if(order.payMethod === 'promptpay') {
+      slipHtml = `<div class="detail-section">
+        <div class="detail-section-title">📱 ${th?'สลิปการโอนเงิน':'Payment Slip'}</div>
+        <div class="slip-box">
+          ${order.slipUrl
+            ? `<img src="${order.slipUrl}" alt="slip">`
+            : `<div class="slip-placeholder"><span class="emoji">🖼️</span>${th?'ยังไม่มีสลิป':'No slip uploaded'}</div>`}
+        </div>
+      </div>`;
+    }
+
+    // Action buttons
+    const canApprove = order.status === 'pending' && order.slipUrl;
+    const canShip = order.status === 'paid' || order.status === 'cash';
+
+    panel.innerHTML = `
+      <div class="sidebar-header">
+        <div>
+          <div class="sidebar-title">📋 ${th?'รายละเอียดคำสั่งซื้อ':'Order Details'}</div>
+          <div class="sidebar-order-id">#${order.id} · <span class="status-badge ${statusInfo.cls}" style="padding:2px 8px;font-size:0.72rem">${statusInfo.label}</span></div>
+        </div>
+      </div>
+      <div class="sidebar-body">
+        <!-- Shipping info -->
+        <div class="detail-section">
+          <div class="detail-section-title">📦 ${th?'ข้อมูลการจัดส่ง':'Shipping Info'}</div>
+          <div class="detail-row"><span class="detail-key">${th?'ชื่อ':'Name'}</span><span class="detail-val">${order.customer?.name||'-'}</span></div>
+          <div class="detail-row"><span class="detail-key">${th?'โทร':'Phone'}</span><span class="detail-val">${order.customer?.phone||'-'}</span></div>
+          <div class="detail-row"><span class="detail-key">${th?'อีเมล':'Email'}</span><span class="detail-val" style="font-size:0.82rem">${order.customer?.email||'-'}</span></div>
+          <div class="detail-row"><span class="detail-key">${th?'ที่อยู่':'Address'}</span><span class="detail-val" style="font-size:0.82rem;max-width:220px">${order.customer?.address||'-'}</span></div>
+        </div>
+
+        <!-- Items -->
+        <div class="detail-section">
+          <div class="detail-section-title">🛒 ${th?'รายการสินค้า':'Order Items'}</div>
+          <div class="sidebar-items">${itemsHtml}</div>
+        </div>
+
+        <!-- Total -->
+        <div class="detail-section">
+          <div class="total-box">
+            <div class="total-row"><span>${th?'ยอดสินค้า':'Subtotal'}</span><span>฿${subtotal}</span></div>
+            ${cashFeeRow}
+            <div class="total-final"><span>${th?'รวมทั้งสิ้น':'Grand Total'}</span><span class="total-final-price">฿${order.total}</span></div>
+          </div>
+        </div>
+
+        <!-- Slip -->
+        ${slipHtml}
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="actions-box">
+        ${order.payMethod === 'promptpay' ? `
+          <button class="btn-admin btn-approve" onclick="approvePayment('${order.id}')" ${canApprove?'':'disabled'}>
+            ✅ ${th?'ยืนยันการชำระเงิน':'Approve Payment'}
+          </button>
+          ${!canApprove && order.status==='pending' ? `<p style="font-size:0.75rem;color:var(--text-muted);text-align:center">${th?'* รอลูกค้าอัปโหลดสลิป':'* Waiting for customer slip'}</p>` : ''}
+        ` : `
+          <div style="background:#f0fdf4;border-radius:8px;padding:10px 14px;font-size:0.82rem;color:#166534">
+            💵 ${th?'ลูกค้าชำระเงินสด ณ ที่จัดส่ง':'Customer pays cash on delivery'}
+          </div>
+        `}
+        <button class="btn-admin btn-ship" onclick="openShipModal('${order.id}')" ${canShip?'':'disabled'}>
+          🚀 ${th?'จัดส่งสินค้า & แจ้งเตือนลูกค้า':'Ship & Notify Customer'}
+        </button>
+      </div>
+    `;
+  }
+
+  function approvePayment(orderId) {
+    const idx = allOrders.findIndex(o => o.id === orderId);
+    if(idx === -1) return;
+    allOrders[idx].status = 'paid';
+    saveOrders();
+    loadOrders();
+    showAdminToast(adminLang==='th' ? '✅ ยืนยันการชำระเงินแล้ว' : '✅ Payment approved!');
+  }
+
+  function saveOrders() {
+    try { localStorage.setItem('teeouanOrders', JSON.stringify(allOrders)); } catch(e) {}
+  }
+
+  function openShipModal(orderId) {
+    selectedOrderId = orderId;
+    const order = allOrders.find(o => o.id === orderId);
+    if(!order) return;
+    const th = adminLang === 'th';
+    document.getElementById('emailPreviewContent').innerHTML = `
+      <p><strong>To:</strong> ${order.customer?.email || 'customer@example.com'}</p>
+      <p><strong>Subject:</strong> ${th
+        ? `[Tee Ouan Packaging] คำสั่งซื้อ #${order.id} ของคุณถูกจัดส่งแล้ว! 🚀`
+        : `[Tee Ouan Packaging] Your Order #${order.id} Has Been Shipped! 🚀`}</p>
+      <hr/>
+      <div class="email-body">
+        <p>${th ? `เรียน คุณ ${order.customer?.name||'ลูกค้า'},` : `Dear ${order.customer?.name||'Customer'},`}</p>
+        <p>${th
+          ? 'ข่าวดี! สินค้าของคุณกำลังเดินทางมา พัสดุถูกส่งมอบให้บริษัทขนส่งเรียบร้อยแล้ว'
+          : 'Great news! Your packaging items are on their way. We have handed over your order to the delivery service.'}</p>
+        <p><strong>${th?'หมายเลขพัสดุ:':'Tracking Number:'}</strong>
+          <input type="text" id="trackingInput" value="TH-TRACK-${order.id}" style="font-weight:700;color:var(--pink)"/>
+        </p>
+        <p>${th?'ขอบคุณที่ไว้วางใจ Tee Ouan Packaging!':'Thank you for choosing Tee Ouan Packaging!'}</p>
+      </div>`;
+    document.getElementById('shipModal').style.display = 'flex';
+  }
+
+  function closeShipModal() {
+    document.getElementById('shipModal').style.display = 'none';
+  }
+
+  function sendSimulation() {
+    if(!selectedOrderId) return;
+    const tracking = document.getElementById('trackingInput')?.value || '';
+    const idx = allOrders.findIndex(o => o.id === selectedOrderId);
+    if(idx !== -1) {
+      allOrders[idx].status = 'shipped';
+      allOrders[idx].trackingNumber = tracking;
+      saveOrders();
+    }
+    closeShipModal();
+    loadOrders();
+    showAdminToast(adminLang==='th' ? '🚀 จัดส่งสินค้าและส่งอีเมลแล้ว!' : '🚀 Order shipped and email sent!');
+  }
+
+  function showAdminToast(msg) {
+    const t = document.getElementById('adminToast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // Auto-refresh every 10 seconds
+  loadOrders();
+  setInterval(loadOrders, 10000);
+</script>
+</body>
+</html>
